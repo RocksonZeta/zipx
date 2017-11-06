@@ -9,29 +9,29 @@ go get github.com/RocksonZeta/zipx^
 ## Example
 ```go
 //Create zip file
-zn := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
-zn.ZipEntryOpen("test.txt")
-zn.ZipEntryWrite([]byte("this is content"))
+zn := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
+zn.EntryOpen("test.txt")
+zn.EntryWrite([]byte("this is content"))
 //zn.ZipEntryFWrite("test.txt")
-zn.ZipEntryClose()
-zn.ZipClose()
+zn.EntryClose()
+zn.Close()
 
 //append file to zip
-za := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
-za.ZipEntryOpen("append.txt")
-za.ZipEntryWrite([]byte("append"))
-za.ZipEntryClose()
-za.ZipClose()
+za := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
+za.EntryOpen("append.txt")
+za.EntryWrite([]byte("append"))
+za.EntryClose()
+za.Close()
 
 
 //read a file
-zr := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
-zr.ZipEntryOpen("dir/test.txt")
-bs, ok := zr.ZipEntryReadCopy()
-zr.ZipEntryClose()
-zr.ZipClose()
+zr := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
+zr.EntryOpen("dir/test.txt")
+bs, ok := zr.EntryReadCopy()
+zr.EntryClose()
+zr.Close()
 
 //read a file directly
-bs, exists := ZipGetCopy("test.zip", "dir/test.txt")
+bs, exists := GetCopy("test.zip", "dir/test.txt")
 fmt.Println(string(bs))
 ```

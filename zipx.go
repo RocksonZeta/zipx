@@ -69,7 +69,7 @@ type Zip struct {
 }
 
 //ZipOen extern struct zip_t *zip_open(const char *zipname, int level, char mode);
-func ZipNew(zipName string, level int, mode byte) *Zip {
+func New(zipName string, level int, mode byte) *Zip {
 	z := &Zip{
 		ZipName: zipName,
 		Level:   level,
@@ -82,24 +82,24 @@ func ZipNew(zipName string, level int, mode byte) *Zip {
 }
 
 //ZipClose extern void zip_close(struct zip_t *zip);
-func (z *Zip) ZipClose() {
+func (z *Zip) Close() {
 	C.zip_close(z.zip)
 }
 
 //ZipEntryOpen extern int zip_entry_open(struct zip_t *zip, const char *entryname);
-func (z *Zip) ZipEntryOpen(entryName string) int {
+func (z *Zip) EntryOpen(entryName string) int {
 	c_entryName := C.CString(entryName)
 	defer C.free(unsafe.Pointer(c_entryName))
 	return int(C.zip_entry_open(z.zip, c_entryName))
 }
 
 //extern int zip_entry_close(struct zip_t *zip);
-func (z *Zip) ZipEntryClose() int {
+func (z *Zip) EntryClose() int {
 	return int(C.zip_entry_close(z.zip))
 }
 
 //extern int zip_entry_write(struct zip_t *zip, const void *buf, size_t bufsize);
-func (z *Zip) ZipEntryWrite(buf []byte) int {
+func (z *Zip) EntryWrite(buf []byte) int {
 	if 0 == len(buf) {
 		return int(C.zip_entry_write(z.zip, unsafe.Pointer(nil), C.size_t(0)))
 	} else {
@@ -108,14 +108,14 @@ func (z *Zip) ZipEntryWrite(buf []byte) int {
 }
 
 //extern int zip_entry_fwrite(struct zip_t *zip, const char *filename);
-func (z *Zip) ZipEntryFWrite(fileName string) int {
+func (z *Zip) EntryFWrite(fileName string) int {
 	c_fileName := C.CString(fileName)
 	defer C.free(unsafe.Pointer(c_fileName))
 	return int(C.zip_entry_fwrite(z.zip, c_fileName))
 }
 
 //extern int zip_entry_read(struct zip_t *zip, void **buf, size_t *bufsize);
-func (z *Zip) ZipEntryRead() ([]byte, func(), int) {
+func (z *Zip) EntryRead() ([]byte, func(), int) {
 	var p unsafe.Pointer
 	var len C.size_t
 	ok := int(C.zip_entry_read(z.zip, &p, &len))
@@ -125,7 +125,7 @@ func (z *Zip) ZipEntryRead() ([]byte, func(), int) {
 	}
 	return bs, freeFn, ok
 }
-func (z *Zip) ZipEntryReadCopy() ([]byte, int) {
+func (z *Zip) EntryReadCopy() ([]byte, int) {
 	var p unsafe.Pointer
 	var size C.size_t
 	ok := int(C.zip_entry_read(z.zip, &p, &size))
@@ -140,23 +140,23 @@ func (z *Zip) ZipEntryReadCopy() ([]byte, int) {
 }
 
 //extern int zip_entry_fread(struct zip_t *zip, const char *filename);
-func (z *Zip) ZipEntryFRead(fileName string) int {
+func (z *Zip) EntryFRead(fileName string) int {
 	c_fileName := C.CString(fileName)
 	defer C.free(unsafe.Pointer(c_fileName))
 	return int(C.zip_entry_fread(z.zip, c_fileName))
 }
 
 func (z *Zip) Get(entryName string) ([]byte, int) {
-	ok := z.ZipEntryOpen(entryName)
+	ok := z.EntryOpen(entryName)
 	if 0 != ok {
 		return nil, ok
 	}
-	defer z.ZipEntryClose()
-	return z.ZipEntryReadCopy()
+	defer z.EntryClose()
+	return z.EntryReadCopy()
 }
 
 //extern int zip_create(const char *zipname, const char *filenames[], size_t len);
-func ZipCreate(zipName string, fileNames []string) int {
+func Create(zipName string, fileNames []string) int {
 	c_zipName := C.CString(zipName)
 	C.free(unsafe.Pointer(c_zipName))
 	length := len(fileNames)
@@ -169,7 +169,7 @@ func ZipCreate(zipName string, fileNames []string) int {
 
 }
 
-func ZipGetCopy(name, entry string) ([]byte, bool) {
+func GetCopy(name, entry string) ([]byte, bool) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c_entry := C.CString(entry)
@@ -184,7 +184,7 @@ func ZipGetCopy(name, entry string) ([]byte, bool) {
 	}
 	return nil, 1 == int(buf.exists)
 }
-func ZipGet(name, entry string) ([]byte, bool, func()) {
+func Get(name, entry string) ([]byte, bool, func()) {
 	c_name := C.CString(name)
 	defer C.free(unsafe.Pointer(c_name))
 	c_entry := C.CString(entry)

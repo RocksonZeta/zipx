@@ -7,36 +7,36 @@ import (
 
 func TestZipSuite(t *testing.T) {
 	zipFile := "test.zip"
-	zn := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
-	ok := zn.ZipEntryOpen("test.txt")
+	zn := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
+	ok := zn.EntryOpen("test.txt")
 	if ok != 0 {
 		t.Errorf("ZipEntryOpen error , status=%d", ok)
 	}
-	ok = zn.ZipEntryFWrite("test.txt")
+	ok = zn.EntryFWrite("test.txt")
 	if ok != 0 {
 		t.Errorf("ZipEntryFWrite error , status=%d", ok)
 	}
-	zn.ZipEntryClose()
-	zn.ZipClose()
+	zn.EntryClose()
+	zn.Close()
 	defer os.Remove(zipFile)
 	//read test
-	zr := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
-	ok = zr.ZipEntryOpen("test.txt")
+	zr := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
+	ok = zr.EntryOpen("test.txt")
 	if ok != 0 {
 		t.Errorf("ZipEntryOpen error , status=%d", ok)
 	}
-	bs, ok := zr.ZipEntryReadCopy()
+	bs, ok := zr.EntryReadCopy()
 	if ok != 0 {
 		t.Errorf("ZipEntryReadCopy error , status=%d", ok)
 	}
 	if len(bs) <= 0 {
 		t.Errorf("ZipEntryReadCopy read no bytes , bs=%s", string(bs))
 	}
-	ok = zr.ZipEntryClose()
+	ok = zr.EntryClose()
 	if ok != 0 {
 		t.Errorf("ZipEntryClose error , status=%d", ok)
 	}
-	zr.ZipClose()
+	zr.Close()
 
 	// //write test
 	// zw := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
@@ -50,25 +50,25 @@ func TestZipSuite(t *testing.T) {
 
 	//append test
 
-	za := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
-	za.ZipEntryOpen("append.txt")
-	ok = za.ZipEntryWrite([]byte("append"))
+	za := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
+	za.EntryOpen("append.txt")
+	ok = za.EntryWrite([]byte("append"))
 	if ok != 0 {
 		t.Errorf("append ZipEntryWrite  error , status=%d", ok)
 	}
-	za.ZipEntryClose()
-	za.ZipClose()
+	za.EntryClose()
+	za.Close()
 
-	zar := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
-	zar.ZipEntryOpen("append.txt")
-	bs, _ = zar.ZipEntryReadCopy()
+	zar := New(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
+	zar.EntryOpen("append.txt")
+	bs, _ = zar.EntryReadCopy()
 	if string(bs) != "append" {
 		t.Errorf("Zip Append failed")
 	}
-	zar.ZipEntryClose()
+	zar.EntryClose()
 
-	zar.ZipClose()
-	bs, exists := ZipGetCopy("test.zip", "test.txt")
+	zar.Close()
+	bs, exists := GetCopy("test.zip", "test.txt")
 	if !exists || len(bs) <= 0 {
 		t.Errorf("ZipGetCopy failed")
 	}
