@@ -1,42 +1,75 @@
 package zipx
 
 import (
-	"fmt"
+	"os"
 	"testing"
 )
 
-func TestZipEntryRead(t *testing.T) {
-	zip := ZipNew("test.zip", ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
-	defer zip.ZipClose()
-	ok := zip.ZipEntryOpen("cmp.html")
+func TestZipSuite(t *testing.T) {
+	zipFile := "test.zip"
+	zn := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
+	ok := zn.ZipEntryOpen("test.txt")
 	if ok != 0 {
-		t.Error("ok ", ok)
+		t.Errorf("ZipEntryOpen error , status=%d", ok)
 	}
-	bs, freeFn, ok := zip.ZipEntryRead()
-	zip.ZipEntryClose()
-	fmt.Println(string(bs))
-	freeFn()
-	fmt.Println(ok)
-}
-func TestEntryReadCopy(t *testing.T) {
-	zip := ZipNew("test.zip", ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
-	defer zip.ZipClose()
-	bs, ok := zip.Get("中文/中文.txt")
-	fmt.Println(string(bs), ok)
-}
-func TestCreate(t *testing.T) {
-	ok := ZipCreate("test.zip", []string{"zipx.go"})
-	fmt.Println("ok", ok)
-}
+	ok = zn.ZipEntryFWrite("test.txt")
+	if ok != 0 {
+		t.Errorf("ZipEntryFWrite error , status=%d", ok)
+	}
+	zn.ZipEntryClose()
+	zn.ZipClose()
+	defer os.Remove(zipFile)
+	//read test
+	zr := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
+	ok = zr.ZipEntryOpen("test.txt")
+	if ok != 0 {
+		t.Errorf("ZipEntryOpen error , status=%d", ok)
+	}
+	bs, ok := zr.ZipEntryReadCopy()
+	if ok != 0 {
+		t.Errorf("ZipEntryReadCopy error , status=%d", ok)
+	}
+	if len(bs) <= 0 {
+		t.Errorf("ZipEntryReadCopy read no bytes , bs=%s", string(bs))
+	}
+	ok = zr.ZipEntryClose()
+	if ok != 0 {
+		t.Errorf("ZipEntryClose error , status=%d", ok)
+	}
+	zr.ZipClose()
 
-func TestZipGetCopy(t *testing.T) {
-	bs, exists := ZipGetCopy("test.zip", "中文/中文.txt1")
-	fmt.Println(string(bs), exists)
-}
-func TestZipAppend(t *testing.T) {
-	zip := ZipNew("test.zip", ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
-	defer zip.ZipClose()
-	zip.ZipEntryOpen("entry1.txt")
-	zip.ZipEntryWrite0()
-	zip.ZipEntryClose()
+	// //write test
+	// zw := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_WRITE)
+	// defer zw.ZipClose()
+	// zw.ZipEntryOpen("new.txt")
+	// defer zw.ZipEntryClose()
+	// ok = zw.ZipEntryWrite([]byte("new"))
+	// if ok != 0 {
+	// 	t.Errorf("ZipEntryWrite error , status=%d", ok)
+	// }
+
+	//append test
+
+	za := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_APPEND)
+	za.ZipEntryOpen("append.txt")
+	ok = za.ZipEntryWrite([]byte("append"))
+	if ok != 0 {
+		t.Errorf("append ZipEntryWrite  error , status=%d", ok)
+	}
+	za.ZipEntryClose()
+	za.ZipClose()
+
+	zar := ZipNew(zipFile, ZIP_DEFAULT_COMPRESSION_LEVEL, ZIP_MODE_READ)
+	zar.ZipEntryOpen("append.txt")
+	bs, _ = zar.ZipEntryReadCopy()
+	if string(bs) != "append" {
+		t.Errorf("Zip Append failed")
+	}
+	zar.ZipEntryClose()
+
+	zar.ZipClose()
+	bs, exists := ZipGetCopy("test.zip", "test.txt")
+	if !exists || len(bs) <= 0 {
+		t.Errorf("ZipGetCopy failed")
+	}
 }
