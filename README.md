@@ -4,7 +4,7 @@ golang wrap for github.com/kuba--/zip
 
 ## installation
 ```
-go get github.com/RocksonZeta/zipx
+go get github.com/RocksonZeta/zipx^
 ```
 ## Example
 ```go
